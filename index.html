@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Für meinen Schatz ❤️</title>
+    <title>Einloggen ❤️</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;700&display=swap');
 
@@ -21,6 +21,7 @@
             position: relative;
         }
 
+        /* Hintergrund Herzen */
         .heart-bg {
             position: absolute;
             color: #ff99ac;
@@ -35,7 +36,8 @@
             to { transform: translateY(110vh) rotate(360deg); }
         }
 
-        .container {
+        /* Container Styles (für Login & Hauptkarte) */
+        .container, .login-container {
             background: rgba(255, 255, 255, 0.95);
             padding: 40px;
             border-radius: 20px;
@@ -49,6 +51,66 @@
             transition: all 0.3s ease;
         }
 
+        /* LOGIN SPEZIFISCH */
+        #mainApp {
+            display: none; /* Erstmal versteckt */
+        }
+
+        .login-input {
+            padding: 15px;
+            width: 80%;
+            border-radius: 10px;
+            border: 2px solid #ffccd5;
+            font-size: 1.1em;
+            outline: none;
+            font-family: 'Quicksand', sans-serif;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+
+        .login-input:focus {
+            border-color: #ff4d6d;
+        }
+
+        .login-btn {
+            background-color: #ff4d6d;
+            color: white;
+            padding: 12px 40px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .login-btn:hover {
+            background-color: #ff2a50;
+            transform: scale(1.05);
+        }
+
+        .error-msg {
+            color: #ff2a50;
+            font-weight: bold;
+            min-height: 25px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* Animation für falsches Passwort */
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* HAUPT SEITE STYLES */
         h1 {
             font-family: 'Pacifico', cursive;
             color: #ff4d6d;
@@ -61,11 +123,11 @@
             font-size: 1.3em;
             color: #555;
             margin-bottom: 25px;
-            min-height: 60px; /* Damit nichts springt bei Textwechsel */
+            min-height: 60px;
         }
 
         .gif-container {
-            height: 180px; /* Feste Höhe für Layout-Stabilität */
+            height: 180px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -88,7 +150,7 @@
             height: 50px;
         }
 
-        button {
+        .action-btn {
             padding: 12px 30px;
             font-size: 1.1em;
             border: none;
@@ -120,7 +182,6 @@
             z-index: 1;
         }
 
-        /* Success Screen */
         .success-content {
             display: none;
             animation: popIn 0.5s ease;
@@ -147,8 +208,21 @@
 </head>
 <body>
 
-    <div class="container" id="mainCard">
+    <div class="login-container" id="loginScreen">
+        <h1>Geheime Liebespost 💌</h1>
+        <p style="font-size: 1em; min-height: auto; margin-bottom: 15px;">
+            Dieser Bereich ist passwortgeschützt.<br>Bitte gib deinen Codenamen ein:
+        </p>
         
+        <input type="password" id="passwordInput" class="login-input" placeholder="Passwort...">
+        <br>
+        <button class="login-btn" onclick="checkPassword()">Öffnen ❤️</button>
+        
+        <div class="error-msg" id="errorMsg"></div>
+    </div>
+
+
+    <div class="container" id="mainApp">
         <div id="questionContent">
             <div class="gif-container">
                 <img id="currentGif" src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcDdtZ2JiZDR0a3lvMWF4OG8yc3p6Ymdvd3g2dXh4Z3BFmw1eG9tZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/cLS1cfxvGOPVpf9g3y/giphy.gif" alt="Cute Bear">
@@ -157,8 +231,8 @@
             <p id="questionText">Willst du mein Valentinsschatz sein? 🌹</p>
             
             <div class="btn-group">
-                <button id="yesBtn">JAAA! 😍</button>
-                <button id="noBtn">Nein</button>
+                <button id="yesBtn" class="action-btn">JAAA! 😍</button>
+                <button id="noBtn" class="action-btn">Nein</button>
             </div>
         </div>
 
@@ -169,42 +243,90 @@
             <h1>Ich liebe dich! ❤️</h1>
             <p>Ich wusste, dass du dich so entscheiden würdest!<br>Fröhlichen Valentinstag! 😘</p>
         </div>
-
     </div>
 
     <script>
-        // --- KONFIGURATION DER SCHRITTE ---
-        // Hier kannst du die Texte und Bilder anpassen!
+        // --- 1. LOGIN LOGIK ---
+        const CORRECT_PASSWORD = "Babyfisch";
+        let attemptsLeft = 3;
+
+        const loginScreen = document.getElementById('loginScreen');
+        const mainApp = document.getElementById('mainApp');
+        const passwordInput = document.getElementById('passwordInput');
+        const errorMsg = document.getElementById('errorMsg');
+        const loginBtn = document.querySelector('.login-btn');
+
+        function checkPassword() {
+            const inputVal = passwordInput.value;
+
+            if (inputVal === CORRECT_PASSWORD) {
+                // Erfolg!
+                loginScreen.style.display = 'none';
+                mainApp.style.display = 'block';
+                document.title = "Für meinen Schatz ❤️";
+            } else {
+                // Falsch
+                attemptsLeft--;
+                loginScreen.classList.add('shake');
+                
+                // Shake Animation entfernen nach 500ms
+                setTimeout(() => {
+                    loginScreen.classList.remove('shake');
+                }, 500);
+
+                passwordInput.value = '';
+
+                if (attemptsLeft > 0) {
+                    errorMsg.textContent = `Falsch! Noch ${attemptsLeft} Versuch(e) 🥺`;
+                } else {
+                    errorMsg.textContent = "Oh nein, Zugriff gesperrt! 🔒";
+                    passwordInput.disabled = true;
+                    loginBtn.disabled = true;
+                    loginBtn.style.backgroundColor = '#ccc';
+                    loginBtn.textContent = "Gesperrt";
+                }
+            }
+        }
+
+        // Enter Taste ermöglichen
+        passwordInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                checkPassword();
+            }
+        });
+
+
+        // --- 2. GAME LOGIK ---
+        
         const steps = [
             {
                 title: "Warte mal kurz...",
                 text: "Bist du dir auch zu 100% sicher? 🤔",
-                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/QGCcTp0p03F6/giphy.gif", // Thinking Bear
+                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/QGCcTp0p03F6/giphy.gif",
                 yesBtn: "Ja, zu 100%!"
             },
             {
                 title: "Echt jetzt?",
                 text: "Auch wenn ich manchmal schwitzige Flossen habe? 💦",
-                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmN4eW14N3R6a2o4bzV6Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/10t57cXgo7x5kQ/giphy.gif", // Shy Bear
+                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbmN4eW14N3R6a2o4bzV6Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/10t57cXgo7x5kQ/giphy.gif",
                 yesBtn: "Ja, ist mir egal!"
             },
             {
-                title: "Oh wow! ",
+                title: "Oh wow!",
                 text: "Aber auch, wenn ich leider nicht vor Ort sein kann? 😢🚅",
-                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/HuT2s9M6Q9oRO/giphy.gif", // Cooking/Eating
+                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/HuT2s9M6Q9oRO/giphy.gif",
                 yesBtn: "Ja, selbst dann!"
             },
             {
                 title: "Letzte Frage!",
                 text: "Bist du bereit für ganz viel Liebe und Nervensägen? ❤️",
-                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/4N1wOi78ZGzYC/giphy.gif", // Excited
+                gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5Z3Z5/4N1wOi78ZGzYC/giphy.gif",
                 yesBtn: "JA, ICH WILL!"
             }
         ];
 
         let currentStep = 0;
 
-        // DOM Elemente
         const questionTitle = document.getElementById('questionTitle');
         const questionText = document.getElementById('questionText');
         const currentGif = document.getElementById('currentGif');
@@ -213,59 +335,46 @@
         const questionContent = document.getElementById('questionContent');
         const successContent = document.getElementById('successContent');
 
-        // Funktion: Nächster Schritt
         yesBtn.addEventListener('click', () => {
             if (currentStep < steps.length) {
-                // Update Inhalte für den nächsten Schritt
                 const step = steps[currentStep];
                 questionTitle.textContent = step.title;
                 questionText.textContent = step.text;
                 currentGif.src = step.gif;
                 yesBtn.textContent = step.yesBtn;
                 
-                // Button Logik zurücksetzen
                 resetNoButton();
-                
                 currentStep++;
             } else {
-                // Finale erreicht
                 finishGame();
             }
         });
 
-        // Funktion: Finale
         function finishGame() {
             questionContent.style.display = 'none';
             successContent.style.display = 'block';
             startConfetti();
         }
 
-        // Funktion: Nein-Button haut ab
         const noTexts = ["Nö!", "Falsch!", "Hier nicht!", "Versuchs nochmal!", "Komm schon!"];
         
         function moveButton() {
-            const cardRect = document.querySelector('.container').getBoundingClientRect();
-            
-            // Zufällige Position
+            const cardRect = document.querySelector('#mainApp').getBoundingClientRect();
             const x = Math.random() * (cardRect.width - noBtn.offsetWidth - 20);
             const y = Math.random() * (cardRect.height - noBtn.offsetHeight - 20);
 
             noBtn.style.position = 'absolute';
             noBtn.style.left = `${x}px`;
             noBtn.style.top = `${y}px`;
-            noBtn.style.right = 'auto'; // Reset right
-
-            // Text ändern zum Spaß
+            noBtn.style.right = 'auto';
             noBtn.textContent = noTexts[Math.floor(Math.random() * noTexts.length)];
         }
 
         function resetNoButton() {
-            // Setzt den Nein Button wieder brav neben den Ja Button (optisch)
-            // Wir lassen ihn aber "absolute" damit er beim Hover direkt springen kann
             noBtn.style.position = 'absolute';
             noBtn.style.right = '20px';
             noBtn.style.top = 'auto';
-            noBtn.style.bottom = '20px'; // Ungefähre Position in der btn-group
+            noBtn.style.bottom = '20px';
             noBtn.textContent = "Nein";
         }
 
@@ -285,7 +394,6 @@
         }
         setInterval(createHeart, 400);
 
-        // Konfetti
         function startConfetti() {
             for (let i = 0; i < 60; i++) {
                 const confetti = document.createElement('div');
