@@ -211,7 +211,7 @@
     <div class="login-container" id="loginScreen">
         <h1>Geheime Liebespost 💌</h1>
         <p style="font-size: 1em; min-height: auto; margin-bottom: 15px;">
-            Dieser Bereich ist passwortgeschützt.<br>Bitte gib das Passwort ein:
+            Dieser Bereich ist passwortgeschützt.<br>Bitte gib deinen Codenamen ein:
         </p>
         
         <input type="password" id="passwordInput" class="login-input" placeholder="Passwort...">
@@ -326,6 +326,7 @@
         ];
 
         let currentStep = 0;
+		let yesScale = 1; // Startgröße für den Button					 
 
         const questionTitle = document.getElementById('questionTitle');
         const questionText = document.getElementById('questionText');
@@ -343,6 +344,9 @@
                 currentGif.src = step.gif;
                 yesBtn.textContent = step.yesBtn;
                 
+				// Reset Größe und Position für den nächsten Schritt
+                yesScale = 1;
+                yesBtn.style.transform = `scale(${yesScale})`;																  
                 resetNoButton();
                 currentStep++;
             } else {
@@ -368,6 +372,9 @@
             noBtn.style.top = `${y}px`;
             noBtn.style.right = 'auto';
             noBtn.textContent = noTexts[Math.floor(Math.random() * noTexts.length)];
+			// NEU: Ja Button wachsen lassen
+            yesScale += 0.2; // Wächst um 20%
+            yesBtn.style.transform = `scale(${yesScale})`;								  
         }
 
         function resetNoButton() {
@@ -407,4 +414,3 @@
     </script>
 </body>
 </html>
-
